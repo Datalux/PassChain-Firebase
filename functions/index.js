@@ -37,12 +37,20 @@ exports.setUserData = functions.https.onCall(async(data, context) => {
 });
 
 exports.checkDoor = functions.https.onCall(async(data, context) => {
-    const pin = data.pin;
+    const doorID = data.pin;
 
-    const doorRef = admin.database().ref('/doors/' + pin).ref;
+    const doorRef = admin.database().ref('/doors/' + doorID).ref;
     const doorDS = await getSnapshot(doorRef);
 
     if (doorDS.exists() && doorDS.val().toString() === '1') {
+        var payload = {
+            data: {
+                id: doorID
+            }
+        }
+
+        admin.messaging().sendToTopic("openDoor", payload);
+
         return {
             status: 0
         }
